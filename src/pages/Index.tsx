@@ -21,12 +21,11 @@ export default function Index() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#08080f] relative">
-      {/* Background glow orbs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-96 h-96 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #9b5de5, transparent 70%)" }} />
-        <div className="absolute bottom-[-20%] right-[-10%] w-96 h-96 rounded-full opacity-15" style={{ background: "radial-gradient(circle, #00b4d8, transparent 70%)" }} />
-        <div className="absolute top-[40%] right-[30%] w-64 h-64 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #f72585, transparent 70%)" }} />
+    <div className="flex h-screen w-screen overflow-hidden relative">
+      {/* Background image */}
+      <div className="fixed inset-0 pointer-events-none">
+        <img src="https://cdn.poehali.dev/projects/9f15938f-537d-478d-9e92-06c9df5002ea/bucket/cf68fe8d-e785-4310-b9ce-e2896d12409a.jpg" alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-black/40" />
       </div>
 
       {/* Sidebar nav */}
