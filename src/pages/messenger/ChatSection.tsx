@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { Chat, Message, CHATS, INITIAL_MESSAGES, STICKER_PACKS } from "./types-data";
+import { playIcqSound } from "./useIcqSound";
 
 const KB_RU = [
   ["й","ц","у","к","е","н","г","ш","щ","з","х","ъ"],
@@ -174,6 +175,8 @@ function ChatWindow({ chat }: { chat: Chat }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const REPLIES = ["Привет!", "Понял, окей", "👍", "Сейчас отвечу", "Хорошо!", "Ок", "Интересно...", "Расскажи подробнее"];
+
   const send = (text?: string, sticker?: string) => {
     if (!text && !sticker) return;
     const msg: Message = {
@@ -187,6 +190,18 @@ function ChatWindow({ chat }: { chat: Chat }) {
     setMessages(prev => [...prev, msg]);
     setInput("");
     setShowStickers(false);
+
+    setTimeout(() => {
+      const reply: Message = {
+        id: Date.now() + 1,
+        text: REPLIES[Math.floor(Math.random() * REPLIES.length)],
+        time: new Date().toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" }),
+        out: false,
+        encrypted: true,
+      };
+      setMessages(prev => [...prev, reply]);
+      playIcqSound();
+    }, 1200 + Math.random() * 800);
   };
 
   const sendVoice = () => {
