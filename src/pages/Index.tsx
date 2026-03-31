@@ -32,8 +32,8 @@ export default function Index() {
       {/* Sidebar nav */}
       <nav className="w-16 flex-shrink-0 flex flex-col items-center py-4 gap-1 glass border-r border-white/8 relative z-10">
         <div className="flex flex-col items-center mb-4 gap-1">
-          <div className="w-10 h-10 grad-primary rounded-xl flex items-center justify-center glow-purple">
-            <Icon name="Zap" size={18} />
+          <div className="w-10 h-10 rounded-xl overflow-hidden glow-purple">
+            <img src="https://cdn.poehali.dev/projects/9f15938f-537d-478d-9e92-06c9df5002ea/bucket/9811258a-d1ad-4cc9-bb44-6a60ac11d7d5.jpg" alt="Axel" className="w-full h-full object-cover" />
           </div>
           <span className="text-[9px] font-bold tracking-widest text-white/50 uppercase">Axel</span>
         </div>
