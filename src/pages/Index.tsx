@@ -161,6 +161,102 @@ function VoiceMessage({ out }: { out: boolean }) {
   );
 }
 
+const KB_RU = [
+  ["й","ц","у","к","е","н","г","ш","щ","з","х","ъ"],
+  ["ф","ы","в","а","п","р","о","л","д","ж","э"],
+  ["я","ч","с","м","и","т","ь","б","ю","."],
+];
+const KB_EN = [
+  ["q","w","e","r","t","y","u","i","o","p"],
+  ["a","s","d","f","g","h","j","k","l"],
+  ["z","x","c","v","b","n","m",",","."],
+];
+const KB_SYM = [
+  ["1","2","3","4","5","6","7","8","9","0"],
+  ["@","#","$","%","&","*","(",")","-","+"],
+  ["!","?","/","\\","_","=","'",'"',";",":"],
+];
+
+function VirtualKeyboard({ onKey, onBackspace, onSpace, onEnter }: {
+  onKey: (k: string) => void;
+  onBackspace: () => void;
+  onSpace: () => void;
+  onEnter: () => void;
+}) {
+  const [lang, setLang] = useState<"ru" | "en" | "sym">("ru");
+  const [caps, setCaps] = useState(false);
+
+  const layout = lang === "ru" ? KB_RU : lang === "en" ? KB_EN : KB_SYM;
+
+  const handleKey = (k: string) => {
+    onKey(caps && lang !== "sym" ? k.toUpperCase() : k);
+  };
+
+  return (
+    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-[420px] glass rounded-2xl overflow-hidden shadow-2xl glow-purple animate-fade-slide z-50 p-3 select-none">
+      {/* Lang switcher */}
+      <div className="flex gap-1.5 mb-2.5 justify-center">
+        {(["ru","en","sym"] as const).map(l => (
+          <button
+            key={l}
+            onClick={() => setLang(l)}
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${lang === l ? "grad-primary" : "glass text-white/50 hover:text-white"}`}
+          >
+            {l === "ru" ? "РУС" : l === "en" ? "ENG" : "#@!"}
+          </button>
+        ))}
+      </div>
+
+      {/* Rows */}
+      {layout.map((row, ri) => (
+        <div key={ri} className="flex justify-center gap-1 mb-1">
+          {ri === layout.length - 1 && lang !== "sym" && (
+            <button
+              onClick={() => setCaps(!caps)}
+              className={`px-2 py-2 rounded-lg text-xs font-bold transition-all min-w-[40px] ${caps ? "grad-primary" : "glass text-white/50 hover:text-white"}`}
+            >
+              <Icon name="ArrowBigUp" size={14} />
+            </button>
+          )}
+          {row.map((k) => (
+            <button
+              key={k}
+              onClick={() => handleKey(k)}
+              className="w-9 h-9 glass glass-hover rounded-lg text-sm font-medium text-white transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
+            >
+              {caps && lang !== "sym" ? k.toUpperCase() : k}
+            </button>
+          ))}
+          {ri === layout.length - 1 && (
+            <button
+              onClick={onBackspace}
+              className="px-2 py-2 glass glass-hover rounded-lg text-white/60 hover:text-white transition-all min-w-[40px] flex items-center justify-center"
+            >
+              <Icon name="Delete" size={14} />
+            </button>
+          )}
+        </div>
+      ))}
+
+      {/* Space + Enter */}
+      <div className="flex gap-1.5 mt-1 justify-center">
+        <button
+          onClick={onSpace}
+          className="flex-1 max-w-[220px] h-9 glass glass-hover rounded-lg text-xs text-white/50 hover:text-white transition-all"
+        >
+          Пробел
+        </button>
+        <button
+          onClick={onEnter}
+          className="px-4 h-9 grad-primary rounded-lg text-xs font-bold hover:scale-105 transition-all"
+        >
+          Отправить
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function StickerPanel({ onSelect }: { onSelect: (s: string) => void }) {
   const [activePack, setActivePack] = useState(0);
   return (
@@ -195,6 +291,7 @@ function ChatWindow({ chat }: { chat: Chat }) {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
   const [showStickers, setShowStickers] = useState(false);
+  const [showKeyboard, setShowKeyboard] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -293,9 +390,17 @@ function ChatWindow({ chat }: { chat: Chat }) {
             {showStickers && (
               <StickerPanel onSelect={(s) => send(undefined, s)} />
             )}
+            {showKeyboard && !showStickers && (
+              <VirtualKeyboard
+                onKey={k => setInput(prev => prev + k)}
+                onBackspace={() => setInput(prev => prev.slice(0, -1))}
+                onSpace={() => setInput(prev => prev + " ")}
+                onEnter={() => send(input)}
+              />
+            )}
             <div className="flex items-center glass rounded-2xl px-3 gap-2">
               <button
-                onClick={() => setShowStickers(!showStickers)}
+                onClick={() => { setShowStickers(!showStickers); setShowKeyboard(false); }}
                 className={`p-2 transition-all hover:scale-110 ${showStickers ? "text-purple-400" : "text-white/40 hover:text-white/70"}`}
               >
                 <span className="text-lg">😊</span>
@@ -306,8 +411,15 @@ function ChatWindow({ chat }: { chat: Chat }) {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && !e.shiftKey && send(input)}
-                onFocus={() => setShowStickers(false)}
+                onFocus={() => { setShowStickers(false); setShowKeyboard(false); }}
               />
+              <button
+                onClick={() => { setShowKeyboard(!showKeyboard); setShowStickers(false); }}
+                className={`p-2 transition-all hover:scale-110 ${showKeyboard ? "text-purple-400" : "text-white/40 hover:text-white/70"}`}
+                title="Экранная клавиатура"
+              >
+                <Icon name="Keyboard" size={18} />
+              </button>
               <button className="p-2 text-white/40 hover:text-white/70 transition-all hover:scale-110">
                 <Icon name="Paperclip" size={18} />
               </button>
