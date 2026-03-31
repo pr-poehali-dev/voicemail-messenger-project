@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { Chat, Message, CHATS, INITIAL_MESSAGES, STICKER_PACKS } from "./types-data";
-import { playIcqSound } from "./useIcqSound";
+import { playIcqSound, playSwooshSound, playMissedCallSound } from "./useIcqSound";
 import IncomingCall from "./IncomingCall";
 
 const KB_RU = [
@@ -192,6 +192,7 @@ function ChatWindow({ chat }: { chat: Chat }) {
     setMessages(prev => [...prev, msg]);
     setInput("");
     setShowStickers(false);
+    playSwooshSound();
 
     setTimeout(() => {
       const reply: Message = {
@@ -216,6 +217,7 @@ function ChatWindow({ chat }: { chat: Chat }) {
       encrypted: true,
     };
     setMessages(prev => [...prev, msg]);
+    playSwooshSound();
   };
 
   return (

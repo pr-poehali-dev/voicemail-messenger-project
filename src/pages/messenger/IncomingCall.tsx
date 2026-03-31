@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { playNokiaTune, stopNokiaTune } from "./useNokiaSound";
+import { playMissedCallSound } from "./useIcqSound";
 
 interface Props {
   name: string;
@@ -16,7 +17,7 @@ export default function IncomingCall({ name, avatar, onAccept, onDecline }: Prop
   }, []);
 
   const accept = () => { stopNokiaTune(); onAccept(); };
-  const decline = () => { stopNokiaTune(); onDecline(); };
+  const decline = () => { stopNokiaTune(); playMissedCallSound(); onDecline(); };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">

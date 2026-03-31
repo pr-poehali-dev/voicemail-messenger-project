@@ -1,13 +1,13 @@
-// Nokia Tune Eclipse — синтез через Web Audio API
+// Nokia Tune — синтез через Web Audio API с корректным зацикливанием
 let stopFn: (() => void) | null = null;
 
 export function playNokiaTune() {
+  if (stopFn) stopNokiaTune();
+
   const AudioCtx = window.AudioContext || (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!AudioCtx) return;
   const ctx = new AudioCtx();
 
-  // Nokia Eclipse notes: E5 D5 F#4 G#4 / A4 G4 B4 C5 / D5 C5 E4 F#4 / B4
-  // [freq, startBeat, durationBeats]
   const BPM = 136;
   const beat = 60 / BPM;
   const notes: [number, number, number][] = [
@@ -26,40 +26,50 @@ export function playNokiaTune() {
     [494, 6,   1.0],
   ];
 
-  const oscs: OscillatorNode[] = [];
+  const loopDuration = 7 * beat;
+  let stopped = false;
+  const allOscs: OscillatorNode[] = [];
 
-  const playNote = (freq: number, start: number, dur: number) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = "square";
-    osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-    gain.gain.setValueAtTime(0, ctx.currentTime + start);
-    gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + start + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur * 0.9);
-    osc.start(ctx.currentTime + start);
-    osc.stop(ctx.currentTime + start + dur);
-    oscs.push(osc);
-  };
-
-  const totalBeats = 7;
-  const loop = () => {
+  const scheduleLoop = (startTime: number) => {
+    if (stopped) return;
     notes.forEach(([freq, startBeat, durBeats]) => {
-      playNote(freq, startBeat * beat, durBeats * beat);
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "square";
+      const t = startTime + startBeat * beat;
+      const d = durBeats * beat;
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.18, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + d * 0.9);
+      osc.start(t);
+      osc.stop(t + d);
+      allOscs.push(osc);
     });
+
+    const nextStart = startTime + loopDuration;
+    const delay = (nextStart - ctx.currentTime) * 1000 - 100;
+    setTimeout(() => {
+      if (!stopped) scheduleLoop(nextStart);
+    }, Math.max(0, delay));
   };
 
-  loop();
-  const interval = setInterval(() => {
-    if (ctx.state === "closed") { clearInterval(interval); return; }
-    loop();
-  }, totalBeats * beat * 1000);
+  scheduleLoop(ctx.currentTime);
 
   stopFn = () => {
-    clearInterval(interval);
-    oscs.forEach(o => { try { o.stop(); } catch { /* already stopped */ } });
-    ctx.close();
+    stopped = true;
+    allOscs.forEach(o => {
+      try {
+        o.stop();
+      } catch {
+        // уже остановлен
+      }
+    });
+    setTimeout(() => {
+      try { ctx.close(); } catch { /* ignore */ }
+    }, 200);
     stopFn = null;
   };
 }
