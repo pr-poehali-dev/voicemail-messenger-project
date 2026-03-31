@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { Chat, Message, CHATS, INITIAL_MESSAGES, STICKER_PACKS } from "./types-data";
 import { playIcqSound } from "./useIcqSound";
+import IncomingCall from "./IncomingCall";
 
 const KB_RU = [
   ["й","ц","у","к","е","н","г","ш","щ","з","х","ъ"],
@@ -169,6 +170,7 @@ function ChatWindow({ chat }: { chat: Chat }) {
   const [showStickers, setShowStickers] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [incomingCall, setIncomingCall] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -232,7 +234,7 @@ function ChatWindow({ chat }: { chat: Chat }) {
           <span className="text-xs text-white/40">{chat.online ? "в сети" : "не в сети"}</span>
         </div>
         <div className="flex items-center gap-2">
-          <button className="w-9 h-9 glass rounded-full flex items-center justify-center hover:bg-white/10 transition-all"><Icon name="Phone" size={16} /></button>
+          <button onClick={() => setIncomingCall(true)} className="w-9 h-9 glass rounded-full flex items-center justify-center hover:bg-white/10 transition-all"><Icon name="Phone" size={16} /></button>
           <button className="w-9 h-9 glass rounded-full flex items-center justify-center hover:bg-white/10 transition-all"><Icon name="Video" size={16} /></button>
           <button className="w-9 h-9 glass rounded-full flex items-center justify-center hover:bg-white/10 transition-all"><Icon name="MoreVertical" size={16} /></button>
         </div>
@@ -334,6 +336,15 @@ function ChatWindow({ chat }: { chat: Chat }) {
           )}
         </div>
       </div>
+
+      {incomingCall && (
+        <IncomingCall
+          name={chat.name}
+          avatar={chat.avatar}
+          onAccept={() => setIncomingCall(false)}
+          onDecline={() => setIncomingCall(false)}
+        />
+      )}
     </div>
   );
 }
