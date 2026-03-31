@@ -31,8 +31,11 @@ export default function Index() {
 
       {/* Sidebar nav */}
       <nav className="w-16 flex-shrink-0 flex flex-col items-center py-4 gap-1 glass border-r border-white/8 relative z-10">
-        <div className="w-10 h-10 grad-primary rounded-xl flex items-center justify-center mb-4 glow-purple">
-          <Icon name="Zap" size={18} />
+        <div className="flex flex-col items-center mb-4 gap-1">
+          <div className="w-10 h-10 grad-primary rounded-xl flex items-center justify-center glow-purple">
+            <Icon name="Zap" size={18} />
+          </div>
+          <span className="text-[9px] font-bold tracking-widest text-white/50 uppercase">Axel</span>
         </div>
         {NAV_ITEMS.map(item => (
           <button
